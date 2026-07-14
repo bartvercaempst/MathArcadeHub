@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Arcade Hub - Educatieve Games</title>
+    <meta name="description" content="Een verzameling van 5 interactieve, educatieve wiskundegames om vermenigvuldigen en delen te oefenen. Mobielvriendelijk en responsive.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Math Arcade Hub</h1>
+        <div class="subtitle">Speel &amp; Leer Wiskunde</div>
+    </header>
+
+    <main class="games-grid">
+        <!-- Game 1: Math Snake -->
+        <article class="game-card snake">
+            <div class="card-header-img">
+                <!-- SVG Neon Snake Icon -->
+                <svg viewBox="0 0 100 100">
+                    <path d="M20,80 L40,80 C50,80 50,60 40,60 L30,60 C20,60 20,40 30,40 L70,40 C80,40 80,20 70,20 L60,20" fill="none" stroke="#ff007f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="60" cy="20" r="6" fill="#fff" />
+                    <circle cx="20" cy="80" r="10" fill="none" stroke="#ff007f" stroke-width="3" />
+                </svg>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title">Cyber Math Snake</h2>
+                <p class="card-desc">Stuur de cyberpunk-slang, eet de juiste antwoorden en ontwijk obstakels of je eigen staart in een neonwereld.</p>
+                <div class="card-tags">
+                    <span class="tag math">Wiskunde</span>
+                    <span class="tag">Tafels</span>
+                    <span class="tag">Arcade</span>
+                </div>
+                <button class="btn-play" onclick="playGame('games/MathSnake.html')">Speel Nu</button>
+            </div>
+        </article>
+
+        <!-- Game 2: Minecraft Math Subway -->
+        <article class="game-card minecraft">
+            <div class="card-header-img">
+                <!-- SVG Minecraft Block Icon -->
+                <svg viewBox="0 0 100 100">
+                    <rect x="25" y="25" width="50" height="50" rx="4" fill="none" stroke="#39ff14" stroke-width="8" />
+                    <line x1="25" y1="50" x2="75" y2="50" stroke="#39ff14" stroke-width="6" />
+                    <line x1="50" y1="25" x2="50" y2="75" stroke="#39ff14" stroke-width="6" />
+                    <rect x="35" y="35" width="10" height="10" fill="#39ff14" />
+                    <rect x="55" y="55" width="10" height="10" fill="#39ff14" />
+                </svg>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title">Minecraft Math Subway</h2>
+                <p class="card-desc">Ren en spring door een 3D-mijnwereld. Los sommen op om de juiste spoortunnels te kiezen en obstakels te ontwijken.</p>
+                <div class="card-tags">
+                    <span class="tag math">3D Runner</span>
+                    <span class="tag">Minecraft</span>
+                    <span class="tag">Delen</span>
+                </div>
+                <button class="btn-play" onclick="playGame('games/MinecraftMathSurfer.html')">Speel Nu</button>
+            </div>
+        </article>
+
+        <!-- Game 3: Neon Table Tetris -->
+        <article class="game-card tetris">
+            <div class="card-header-img">
+                <!-- SVG Tetris Block Icon -->
+                <svg viewBox="0 0 100 100">
+                    <rect x="15" y="35" width="20" height="20" rx="3" fill="none" stroke="#9d00ff" stroke-width="6" />
+                    <rect x="35" y="35" width="20" height="20" rx="3" fill="none" stroke="#9d00ff" stroke-width="6" />
+                    <rect x="55" y="35" width="20" height="20" rx="3" fill="none" stroke="#9d00ff" stroke-width="6" />
+                    <rect x="35" y="55" width="20" height="20" rx="3" fill="none" stroke="#9d00ff" stroke-width="6" />
+                </svg>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title">Neon Table Tetris</h2>
+                <p class="card-desc">Combineer blokken en los rekensommen op. Voorkom dat de blokken het plafond raken in dit intense retro-puzzelspel.</p>
+                <div class="card-tags">
+                    <span class="tag math">Tetris</span>
+                    <span class="tag">Puzzel</span>
+                    <span class="tag">Multiplicatie</span>
+                </div>
+                <button class="btn-play" onclick="playGame('games/NeonTableTetris.html')">Speel Nu</button>
+            </div>
+        </article>
+
+        <!-- Game 4: PacMathMan -->
+        <article class="game-card pacman">
+            <div class="card-header-img">
+                <!-- SVG Pacman Icon -->
+                <svg viewBox="0 0 100 100">
+                    <path d="M 50,50 L 80,30 A 35,35 0 1,0 80,70 Z" fill="none" stroke="#ffea00" stroke-width="8" stroke-linejoin="round"/>
+                    <circle cx="50" cy="25" r="5" fill="#ffea00" />
+                </svg>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title">PacMathMan: Arcade</h2>
+                <p class="card-desc">Eet stippen en ontwijk kleurrijke spoken in het doolhof. Eet grote krachtpillen om tafelsommen op te lossen en spoken te vangen!</p>
+                <div class="card-tags">
+                    <span class="tag math">Pacman</span>
+                    <span class="tag">Klassieker</span>
+                    <span class="tag">Tafels</span>
+                </div>
+                <button class="btn-play" onclick="playGame('games/PacMathMan.html')">Speel Nu</button>
+            </div>
+        </article>
+
+        <!-- Game 5: Pokemon Math Battle -->
+        <article class="game-card pokemon">
+            <div class="card-header-img">
+                <!-- SVG Pokeball Icon -->
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="#00f0ff" stroke-width="8" />
+                    <line x1="15" y1="50" x2="85" y2="50" stroke="#00f0ff" stroke-width="8" />
+                    <circle cx="50" cy="50" r="12" fill="#03030c" stroke="#00f0ff" stroke-width="6" />
+                    <circle cx="50" cy="50" r="4" fill="#fff" />
+                </svg>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title">Pokémon Math Battle</h2>
+                <p class="card-desc">Train je Pokémon, voer sterke aanvallen uit door snel tafelsommen te beantwoorden en evolueer je Pokémon naar de top.</p>
+                <div class="card-tags">
+                    <span class="tag math">RPG Battle</span>
+                    <span class="tag">Pokémon</span>
+                    <span class="tag">Rekenen</span>
+                </div>
+                <button class="btn-play" onclick="playGame('games/PokemonMathBattle.html')">Speel Nu</button>
+            </div>
+        </article>
+    </main>
+
+    <footer>
+        &copy; 2026 Math Arcade Hub &bull; Responsive &amp; Offline-Ready
+    </footer>
+
+    <!-- Fullscreen Game Container Overlay -->
+    <div id="game-overlay">
+        <!-- Floating Exit Button -->
+        <button class="btn-exit" onclick="closeGame()">
+            <!-- SVG Back Arrow Icon -->
+            <svg viewBox="0 0 24 24">
+                <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+            </svg>
+            Menu
+        </button>
+        <div id="iframe-container" style="width: 100%; height: 100%;">
+            <!-- Loaded on demand -->
+        </div>
+    </div>
+
+    <script>
+        const overlay = document.getElementById('game-overlay');
+        const iframeContainer = document.getElementById('iframe-container');
+
+        function playGame(url) {
+            // Create iframe dynamically to clear any state and stop loops when destroyed
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.id = 'game-iframe';
+            iframe.setAttribute('allow', 'autoplay');
+            iframe.setAttribute('scrolling', 'no');
+            
+            iframeContainer.innerHTML = '';
+            iframeContainer.appendChild(iframe);
+            
+            overlay.style.display = 'block';
+            
+            // Allow display change to compile before animating opacity
+            setTimeout(() => {
+                overlay.classList.add('active');
+            }, 50);
+        }
+
+        function closeGame() {
+            overlay.classList.remove('active');
+            
+            // Wait for transition to complete before hiding container and wiping iframe
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                iframeContainer.innerHTML = ''; // completely destroys the iframe (stops sound and loops)
+            }, 300);
+        }
+
+        // Prevent zoom gestures on mobile WebViews
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

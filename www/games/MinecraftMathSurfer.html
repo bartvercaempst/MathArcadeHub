@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Math Subway - 3D Infinite Runner</title>
+  
+  <!-- Import Google Fonts: Minecraft-style Press Start 2P -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <!-- Import Three.js -->
+  <script src="../lib/three.min.js"></script>
+
+  <style>
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #141419;
+      font-family: 'Press Start 2P', monospace;
+      color: #ffffff;
+    }
+
+    /* Fullscreen 3D Canvas */
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Screen overlays container */
+    .screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, rgba(24,24,30,0.8) 0%, rgba(10,10,14,0.95) 100%);
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .screen-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Minecraft Styled Panel */
+    .mc-panel {
+      background: #c6c6c6;
+      border: 4px solid #373737;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      box-shadow: inset -4px -4px 0px #555555, inset 4px 4px 0px #dbdbdb;
+      padding: 24px;
+      width: 90%;
+      max-width: 580px;
+      text-align: center;
+      image-rendering: pixelated;
+    }
+
+    .mc-title {
+      font-size: 24px;
+      color: #ffff55;
+      text-shadow: 3px 3px 0px #3f3f00;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .mc-subtitle {
+      font-size: 11px;
+      color: #aaaaaa;
+      text-shadow: 2px 2px 0px #2a2a2a;
+      margin-bottom: 20px;
+    }
+
+    /* Checkbox & Grid layout */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+      background: #8b8b8b;
+      padding: 8px;
+      border: 4px solid #373737;
+      box-shadow: inset -2px -2px 0px #555555, inset 2px 2px 0px #dbdbdb;
+    }
+
+    .table-checkbox-label {
+      background: #555555;
+      border: 2px solid #222222;
+      border-top-color: #8b8b8b;
+      border-left-color: #8b8b8b;
+      padding: 10px 4px;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s;
+    }
+
+    .table-checkbox-label input {
+      display: none;
+    }
+
+    .table-checkbox-label.selected {
+      background: #3c8527;
+      border-top-color: #5ca846;
+      border-left-color: #5ca846;
+      color: #ffffff;
+      text-shadow: 1px 1px 0px #1e4512;
+    }
+
+    /* Mode Selection Switch */
+    .mode-select {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 16px;
+      gap: 8px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      cursor: pointer;
+      background: #555555;
+      border: 3px solid #222222;
+      border-top-color: #8b8b8b;
+      border-left-color: #8b8b8b;
+      color: #ffffff;
+    }
+
+    .mode-btn.active {
+      background: #3c8527;
+      border-top-color: #5ca846;
+      border-left-color: #5ca846;
+      text-shadow: 1px 1px 0px #1e4512;
+    }
+
+    /* Speed Slider */
+    .slider-container {
+      margin: 20px 0;
+      text-align: left;
+      font-size: 11px;
+      color: #4a4a4a;
+      text-shadow: 1px 1px 0px #dbdbdb;
+    }
+
+    .slider-container label {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .mc-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 16px;
+      background: #555555;
+      border: 3px solid #222222;
+      outline: none;
+    }
+
+    .mc-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      background: #c6c6c6;
+      border: 3px solid #000;
+      box-shadow: inset -2px -2px 0px #555555, inset 2px 2px 0px #ffffff;
+      cursor: pointer;
+    }
+
+    /* Minecraft Button */
+    .mc-btn {
+      width: 100%;
+      padding: 16px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+      color: #ffffff;
+      background: #555555;
+      border: 4px solid #000000;
+      border-top-color: #8b8b8b;
+      border-left-color: #8b8b8b;
+      cursor: pointer;
+      text-shadow: 2px 2px 0px #2a2a2a;
+      box-shadow: 0px 4px 0px #222222;
+      margin-top: 12px;
+      transition: all 0.05s ease;
+    }
+
+    .mc-btn:hover {
+      background: #5ca846;
+      border-top-color: #a3e08f;
+      border-left-color: #a3e08f;
+      color: #ffffff;
+      text-shadow: 2px 2px 0px #1e4512;
+    }
+
+    .mc-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0px 2px 0px #222222;
+      border-top-color: #000000;
+      border-left-color: #000000;
+    }
+
+    /* Topscore display */
+    .topscore-label {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #ffaa00;
+      text-shadow: 1px 1px 0px #372800;
+    }
+
+    /* Heads-Up Display (HUD) */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* HUD Bottom Panel - Status */
+    .hud-bottom {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.65);
+      border: 3px solid #373737;
+      padding: 12px 24px;
+      border-radius: 4px;
+    }
+
+    .hud-stat {
+      font-size: 12px;
+      text-shadow: 1px 1px 0px #000;
+    }
+
+    .hearts-container {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .heart {
+      width: 24px;
+      height: 24px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      image-rendering: pixelated;
+    }
+
+    /* Red Heart SVG Embedded */
+    .heart.full {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'><path d='M1,1h2v1h1v1h-1v1h-2v-1h-1v-2z M5,1h2v1h1v1h-1v1h-2v-1h-1v-2z M0,3h9v2h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1z' fill='%23ff2222'/></svg>");
+    }
+
+    .heart.empty {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'><path d='M1,1h2v1h1v1h-1v-1h-2v-1h-1v-2z M5,1h2v1h1v1h-1v1h-2v-1h-1v-2z M0,3h9v2h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1z' fill='%23444444'/></svg>");
+    }
+
+    /* 3D floating HTML Label overlay */
+    .answer-label {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: 2px 2px 0px #000000;
+      pointer-events: none;
+      z-index: 4;
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid #555555;
+      padding: 6px 12px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Floating Math Question Overlay */
+    .question-label {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 26px;
+      color: #ffff55;
+      text-shadow: 3px 3px 0px #3f3f00;
+      pointer-events: none;
+      z-index: 4;
+      background: rgba(0, 0, 0, 0.75);
+      border: 3px solid #ffff55;
+      padding: 10px 20px;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Hit Damage Screen Flash */
+    #damage-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 0, 0, 0.4);
+      z-index: 9;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease-out;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .grid-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .hud-bottom {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .mc-panel {
+        padding: 16px;
+      }
+      .mc-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Game Over and Menu overlay -->
+  <div id="menu-screen" class="screen-overlay">
+    <div class="mc-panel">
+      <h1 class="mc-title">MINECRAFT SUBWAY MATH</h1>
+      <p class="mc-subtitle">Versla de obstakels door de juiste sommen op te lossen!</p>
+      
+      <div style="font-size: 11px; text-align: left; margin-bottom: 8px; color: #373737;">Kies Maaltafels/Deeltafels:</div>
+      <div class="grid-container" id="tables-grid">
+        <!-- Tables checkboxes generated dynamically -->
+      </div>
+
+      <div class="mode-select">
+        <button class="mode-btn active" id="mode-multiply" onclick="setMode('multiply')">VERMENIGVULDIGEN</button>
+        <button class="mode-btn" id="mode-divide" onclick="setMode('divide')">DELEN</button>
+        <button class="mode-btn" id="mode-mix" onclick="setMode('mix')">MIX</button>
+      </div>
+
+      <div class="slider-container">
+        <label id="speed-label">Startsnelheid: 1.0x</label>
+        <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" class="mc-slider" id="speed-slider" oninput="updateSpeedLabel(this.value)">
+      </div>
+
+      <button class="mc-btn" onclick="startGame()">START GAME</button>
+      
+      <div class="topscore-label" id="menu-topscore">All-Time Topscore: 0</div>
+    </div>
+  </div>
+
+  <!-- Incorrect answer popup screen -->
+  <div id="wrong-answer-screen" class="screen-overlay hidden">
+    <div class="mc-panel" style="border-color: #8b0000; box-shadow: inset -4px -4px 0px #5a0000, inset 4px 4px 0px #ff5555;">
+      <h1 class="mc-title" style="color: #ff5555; text-shadow: 3px 3px 0px #5a0000;">FOUT!</h1>
+      <p class="mc-subtitle" style="color: #ffffff; font-size: 20px; margin: 24px 0;" id="wrong-answer-text">4 x 5 = 20</p>
+      <button class="mc-btn" onclick="closeWrongAnswerPopup()">GA VERDER</button>
+    </div>
+  </div>
+
+  <div id="gameover-screen" class="screen-overlay hidden">
+    <div class="mc-panel" style="border-color: #8b0000; box-shadow: inset -4px -4px 0px #5a0000, inset 4px 4px 0px #ff5555;">
+      <h1 class="mc-title" style="color: #ff5555; text-shadow: 3px 3px 0px #5a0000;">GAME OVER</h1>
+      <p class="mc-subtitle" style="color: #ffaaaa;" id="gameover-reason">Je bent gecrasht in de verkeerde mijnblok!</p>
+      
+      <div style="margin: 20px 0; line-height: 1.8; font-size: 14px;">
+        <div>Behaalde Score: <span id="gameover-score" style="color: #ffff55;">0</span></div>
+        <div id="gameover-new-high" style="color: #55ff55; display: none; font-size: 12px; margin-top: 5px;">NIEUWE TOPSCORE!</div>
+      </div>
+
+      <button class="mc-btn" style="background: #8b0000; border-top-color: #ff5555; border-left-color: #ff5555;" onclick="showMenu()">HOOFDMENU</button>
+      <button class="mc-btn" onclick="startGame()">SPEEL OPNIEUW</button>
+      
+      <div class="topscore-label" id="gameover-topscore" style="margin-top: 15px;">All-Time Topscore: 0</div>
+    </div>
+  </div>
+
+  <!-- In-game HUD -->
+  <div id="hud" style="display: none;">
+    <div class="hud-bottom">
+      <div class="hud-stat">SCORE: <span id="hud-score" style="color: #ffff55;">0</span></div>
+      <div class="hearts-container" id="hud-hearts">
+        <div class="heart full"></div>
+        <div class="heart full"></div>
+        <div class="heart full"></div>
+      </div>
+      <div class="hud-stat">SNELHEID: <span id="hud-speed" style="color: #55ff55;">1.0x</span></div>
+    </div>
+  </div>
+
+  <!-- Label container for projecting answer figures and question onto 3D Blocks -->
+  <div id="answers-overlay-container" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 4; overflow: hidden;"></div>
+
+  <!-- Damage vignettes -->
+  <div id="damage-flash"></div>
+
+  <!-- Canvas for Three.js -->
+  <div id="canvas-container"></div>
+
+  <script>
+    // --- MATH LOGIC ENGINE ---
+    class MathEngine {
+      constructor() {
+        this.selectedTables = [2, 3, 4, 5, 6, 7, 8, 9];
+        this.mode = 'multiply';
+        this.currentAnswer = 0;
+        this.currentProblemText = "";
+      }
+
+      generateProblem() {
+        if (this.selectedTables.length === 0) {
+          this.selectedTables = [2, 3, 4, 5, 6, 7, 8, 9];
+        }
+
+        const table = this.selectedTables[Math.floor(Math.random() * this.selectedTables.length)];
+        
+        // Multipliers ONLY 2 through 9 (excludes 1 and 10)
+        const multiplier = Math.floor(Math.random() * 8) + 2; 
+
+        let currentMode = this.mode;
+        if (this.mode === 'mix') {
+          currentMode = Math.random() < 0.5 ? 'multiply' : 'divide';
+        }
+
+        let options = [];
+        if (currentMode === 'multiply') {
+          this.currentAnswer = table * multiplier;
+          this.currentProblemText = `${table} x ${multiplier}`;
+          
+          // Generate close distractors
+          const variations = [
+            this.currentAnswer + table,
+            this.currentAnswer - table,
+            this.currentAnswer + 1,
+            this.currentAnswer - 1,
+            this.currentAnswer + multiplier,
+            this.currentAnswer - multiplier
+          ];
+          options = this.pickDistractors(this.currentAnswer, variations);
+        } else {
+          // Division (dividend = table * multiplier, divisor = table)
+          const product = table * multiplier;
+          this.currentAnswer = multiplier;
+          this.currentProblemText = `${product} ÷ ${table}`;
+
+          const variations = [
+            multiplier + 1,
+            multiplier - 1,
+            multiplier + 2,
+            multiplier - 2,
+            multiplier + 3
+          ];
+          options = this.pickDistractors(this.currentAnswer, variations);
+        }
+
+        return {
+          question: this.currentProblemText,
+          correctAnswer: this.currentAnswer,
+          answers: options
+        };
+      }
+
+      pickDistractors(correct, list) {
+        const validList = list.filter(v => v > 0 && v !== correct);
+        const shuffled = validList.sort(() => 0.5 - Math.random());
+        const picked = [shuffled[0] || (correct + 2), shuffled[1] || (correct + 5)];
+        const finalOptions = [correct, ...picked];
+        return finalOptions.sort(() => 0.5 - Math.random());
+      }
+    }
+
+    // --- 3D CART & MINECRAFT CHAR STEVE ---
+    class Cart3D {
+      constructor(scene) {
+        this.group = new THREE.Group();
+        this.wheels = [];
+        
+        // Build Minecraft minecart
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.8, metalness: 0.2 });
+
+        // Base box
+        const baseGeo = new THREE.BoxGeometry(2.0, 0.3, 2.4);
+        const base = new THREE.Mesh(baseGeo, bodyMat);
+        base.position.y = 0.45;
+        base.castShadow = true;
+        base.receiveShadow = true;
+        this.group.add(base);
+
+        // Minecart walls
+        const wallThickness = 0.15;
+        const wallHeight = 0.9;
+        
+        const sideWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, 2.4);
+        const leftWall = new THREE.Mesh(sideWallGeo, bodyMat);
+        leftWall.position.set(-1.0 + wallThickness/2, 0.45 + wallHeight/2, 0);
+        leftWall.castShadow = true;
+        this.group.add(leftWall);
+
+        const rightWall = leftWall.clone();
+        rightWall.position.x = 1.0 - wallThickness/2;
+        this.group.add(rightWall);
+
+        // Front wall facing -Z (blocks travel from -Z to player)
+        const endWallGeo = new THREE.BoxGeometry(2.0, wallHeight, wallThickness);
+        const frontWall = new THREE.Mesh(endWallGeo, bodyMat);
+        frontWall.position.set(0, 0.45 + wallHeight/2, -1.2 + wallThickness/2);
+        frontWall.castShadow = true;
+        this.group.add(frontWall);
+
+        // Back wall facing +Z
+        const backWall = frontWall.clone();
+        backWall.position.z = 1.2 - wallThickness/2;
+        this.group.add(backWall);
+
+        // Inner bottom dark block to simulate hollow cart
+        const insideGeo = new THREE.BoxGeometry(1.7, 0.6, 2.1);
+        const inside = new THREE.Mesh(insideGeo, new THREE.MeshStandardMaterial({ color: 0x1f1f1f, roughness: 0.9 }));
+        inside.position.set(0, 0.7, 0);
+        this.group.add(inside);
+
+        // Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 8);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x2e2e2e, roughness: 0.5 });
+        
+        const wheelPositions = [
+          [-1.1, 0.35, -0.8],  // Front Left
+          [1.1, 0.35, -0.8],   // Front Right
+          [-1.1, 0.35, 0.8],  // Rear Left
+          [1.1, 0.35, 0.8]   // Rear Right
+        ];
+
+        wheelPositions.forEach(pos => {
+          const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(pos[0], pos[1], pos[2]);
+          wheel.castShadow = true;
+          this.group.add(wheel);
+          this.wheels.push(wheel);
+        });
+
+        // Headlights at the front (Z = -1.21) pointing forward (-Z)
+        const lightBoxGeo = new THREE.BoxGeometry(0.2, 0.2, 0.1);
+        const lightBoxMat = new THREE.MeshBasicMaterial({ color: 0xffff33 });
+        
+        const headlightL = new THREE.Mesh(lightBoxGeo, lightBoxMat);
+        headlightL.position.set(-0.6, 0.8, -1.21);
+        this.group.add(headlightL);
+
+        const headlightR = headlightL.clone();
+        headlightR.position.x = 0.6;
+        this.group.add(headlightR);
+
+        // Spotlight pointing forward (-Z)
+        this.headlight = new THREE.SpotLight(0xfff3a8, 6.5, 45, Math.PI / 6, 0.5, 1.0);
+        this.headlight.position.set(0, 1.0, -1.2);
+        this.headlight.target.position.set(0, 0, -30);
+        this.group.add(this.headlight);
+        this.group.add(this.headlight.target);
+
+        this.headlight.castShadow = true;
+        this.headlight.shadow.mapSize.width = 512;
+        this.headlight.shadow.mapSize.height = 512;
+
+        // --- CONSTRUCT MINECRAFT STEVE CHAR (Facing -Z) ---
+        this.steve = new THREE.Group();
+        this.steve.position.set(0, 0.6, 0.2); // Positioned slightly back in cart
+
+        // Legs (pointing forward towards -Z)
+        const pantsMat = new THREE.MeshStandardMaterial({ color: 0x002c94, roughness: 0.8 }); // Blue jeans
+        const legGeo = new THREE.BoxGeometry(0.28, 0.28, 0.65);
+        
+        const leftLeg = new THREE.Mesh(legGeo, pantsMat);
+        // Steve group is rotated 180 degrees, so local +Z represents world -Z (forward)
+        leftLeg.position.set(-0.16, 0.14, 0.28); 
+        leftLeg.castShadow = true;
+        this.steve.add(leftLeg);
+
+        const rightLeg = leftLeg.clone();
+        rightLeg.position.x = 0.16;
+        this.steve.add(rightLeg);
+
+        // Torso
+        const shirtMat = new THREE.MeshStandardMaterial({ color: 0x00c4c4, roughness: 0.8 }); // Teal shirt
+        const torsoGeo = new THREE.BoxGeometry(0.64, 0.78, 0.35);
+        const torso = new THREE.Mesh(torsoGeo, shirtMat);
+        torso.position.set(0, 0.62, 0);
+        torso.castShadow = true;
+        this.steve.add(torso);
+
+        // Skin material
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xdba07a, roughness: 0.9 });
+
+        // Left Arm (holding cart side, points forward towards local +Z)
+        const armGeo = new THREE.BoxGeometry(0.2, 0.65, 0.2);
+        const leftArm = new THREE.Group();
+        leftArm.position.set(-0.42, 0.8, 0);
+        
+        const leftArmMesh = new THREE.Mesh(armGeo, shirtMat);
+        leftArmMesh.position.y = -0.15;
+        leftArmMesh.castShadow = true;
+        leftArm.add(leftArmMesh);
+        
+        const leftForearm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 0.2), skinMat);
+        leftForearm.position.y = -0.48;
+        leftForearm.castShadow = true;
+        leftArm.add(leftForearm);
+        
+        leftArm.rotation.x = -Math.PI / 4;
+        this.steve.add(leftArm);
+
+        // Right Arm (raised slightly, holding torch)
+        const rightArm = new THREE.Group();
+        rightArm.position.set(0.42, 0.8, 0);
+        
+        const rightArmMesh = new THREE.Mesh(armGeo, shirtMat);
+        rightArmMesh.position.y = -0.15;
+        rightArmMesh.castShadow = true;
+        rightArm.add(rightArmMesh);
+        
+        const rightForearm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 0.2), skinMat);
+        rightForearm.position.y = -0.48;
+        rightForearm.castShadow = true;
+        rightArm.add(rightForearm);
+
+        // --- THE HELD TORCH ---
+        const torch = new THREE.Group();
+        // Points forward in local space (+Z)
+        torch.position.set(0, -0.65, 0.1);
+        torch.rotation.x = Math.PI / 4; 
+
+        const stick = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+        torch.add(stick);
+
+        const flame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0xff8800 }));
+        flame.position.set(0, 0.24, 0);
+        torch.add(flame);
+
+        this.torchLight = new THREE.PointLight(0xff9900, 3.0, 12);
+        this.torchLight.position.set(0, 0.3, 0);
+        torch.add(this.torchLight);
+
+        rightArm.add(torch);
+        
+        rightArm.rotation.x = -Math.PI / 2.6;
+        rightArm.rotation.z = -Math.PI / 12;
+        this.steve.add(rightArm);
+
+        // Custom Steve Face Texture
+        const faceCanvas = document.createElement('canvas');
+        faceCanvas.width = 64;
+        faceCanvas.height = 64;
+        const ctx = faceCanvas.getContext('2d');
+        ctx.fillStyle = '#dba07a';
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillStyle = '#4c2f13';
+        ctx.fillRect(0, 0, 64, 16);
+        ctx.fillRect(0, 16, 12, 16);
+        ctx.fillRect(52, 16, 12, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(12, 32, 12, 8);
+        ctx.fillRect(40, 32, 12, 8);
+        ctx.fillStyle = '#4040ff';
+        ctx.fillRect(18, 32, 6, 8);
+        ctx.fillRect(40, 32, 6, 8);
+        ctx.fillStyle = '#a06040';
+        ctx.fillRect(24, 42, 16, 8);
+        ctx.fillStyle = '#5c3317';
+        ctx.fillRect(20, 48, 24, 6);
+        
+        const faceTexture = new THREE.CanvasTexture(faceCanvas);
+        faceTexture.magFilter = THREE.NearestFilter;
+        faceTexture.minFilter = THREE.NearestFilter;
+
+        const headMatFace = new THREE.MeshStandardMaterial({ map: faceTexture, roughness: 0.9 });
+        const headMatHair = new THREE.MeshStandardMaterial({ color: 0x4c2f13, roughness: 0.9 });
+        const headMatSkin = new THREE.MeshStandardMaterial({ color: 0xdba07a, roughness: 0.9 });
+
+        const headMaterials = [
+          headMatHair, // right
+          headMatHair, // left
+          headMatHair, // top
+          headMatSkin, // bottom
+          headMatFace, // front (index 4)
+          headMatHair  // back
+        ];
+
+        const headGeo = new THREE.BoxGeometry(0.52, 0.52, 0.52);
+        const head = new THREE.Mesh(headGeo, headMaterials);
+        head.position.set(0, 1.22, 0);
+        head.castShadow = true;
+        this.steve.add(head);
+
+        // Rotate the ENTIRE Steve group 180 degrees so his body, arms, legs, and face all face forward (-Z)
+        this.steve.rotation.y = Math.PI;
+        this.group.add(this.steve);
+
+        this.group.position.set(0, 0, 8);
+        scene.add(this.group);
+
+        this.targetLane = 0;
+        this.laneWidth = 4.0;
+        this.currentX = 0;
+      }
+
+      update(dt, speed) {
+        const targetX = this.targetLane * this.laneWidth;
+        this.currentX += (targetX - this.currentX) * 12 * dt;
+        this.group.position.x = this.currentX;
+
+        const wheelRotationSpeed = speed * 1.5;
+        this.wheels.forEach((wheel) => {
+          wheel.rotation.x += wheelRotationSpeed * dt;
+        });
+
+        const time = Date.now();
+        this.group.position.y = 0.05 * Math.sin(time * 0.015);
+        this.steve.position.y = 0.6 + 0.02 * Math.sin(time * 0.01);
+      }
+    }
+
+    // --- 3D BLOCK MANAGER ---
+    class BlockManager3D {
+      constructor(scene, camera) {
+        this.scene = scene;
+        this.camera = camera;
+
+        this.activeBlocks = [];
+        this.activePlanks = [];
+        this.activeSideRocks = [];
+        this.activeParticles = [];
+        this.activeArches = [];
+
+        this.cyanMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, roughness: 0.2, metalness: 0.8, flatShading: true });
+        this.goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.1, metalness: 0.9, flatShading: true });
+        this.purpleMat = new THREE.MeshStandardMaterial({ color: 0x8a2be2, roughness: 0.6, metalness: 0.4, flatShading: true });
+        this.stoneMat = new THREE.MeshStandardMaterial({ color: 0x6e6e6e, roughness: 0.9, flatShading: true });
+        
+        this.blockGeo = new THREE.BoxGeometry(2.0, 2.0, 2.0);
+
+        this.initEnvironment();
+      }
+
+      initEnvironment() {
+        for (let z = -120; z <= 20; z += 4) {
+          this.spawnPlank(z);
+        }
+
+        for (let z = -120; z <= 20; z += 12) {
+          this.spawnSideRocks(z);
+        }
+
+        for (let z = -120; z <= 20; z += 24) {
+          this.spawnSupportArch(z);
+        }
+      }
+
+      spawnPlank(z) {
+        const plankGroup = new THREE.Group();
+        plankGroup.position.z = z;
+
+        const plankMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+        const railMat = new THREE.MeshStandardMaterial({ color: 0x9a9a9a, roughness: 0.4, metalness: 0.9 });
+
+        const plankGeo = new THREE.BoxGeometry(11.0, 0.15, 0.4);
+        const plank = new THREE.Mesh(plankGeo, plankMat);
+        plank.position.y = 0.075;
+        plank.receiveShadow = true;
+        plankGroup.add(plank);
+
+        const railGeo = new THREE.BoxGeometry(0.12, 0.12, 4.2);
+        const laneOffsets = [-4.0, 0, 4.0];
+        
+        laneOffsets.forEach(laneX => {
+          const railL = new THREE.Mesh(railGeo, railMat);
+          railL.position.set(laneX - 0.7, 0.16, 0);
+          railL.receiveShadow = true;
+          plankGroup.add(railL);
+
+          const railR = new THREE.Mesh(railGeo, railMat);
+          railR.position.set(laneX + 0.7, 0.16, 0);
+          railR.receiveShadow = true;
+          plankGroup.add(railR);
+        });
+
+        this.scene.add(plankGroup);
+        this.activePlanks.push(plankGroup);
+      }
+
+      spawnSideRocks(z) {
+        const leftRock = new THREE.Group();
+        leftRock.position.set(-8.5, 0, z);
+
+        const rightRock = new THREE.Group();
+        rightRock.position.set(8.5, 0, z);
+
+        const sideBlockGeo = new THREE.BoxGeometry(3.0, 6.0, 12.0);
+
+        const meshL = new THREE.Mesh(sideBlockGeo, this.stoneMat);
+        meshL.position.y = 3.0;
+        meshL.castShadow = true;
+        meshL.receiveShadow = true;
+        leftRock.add(meshL);
+
+        const meshR = new THREE.Mesh(sideBlockGeo, this.stoneMat);
+        meshR.position.y = 3.0;
+        meshR.castShadow = true;
+        meshR.receiveShadow = true;
+        rightRock.add(meshR);
+
+        const oreColors = [0x00ffff, 0xff0000, 0x00ff00, 0xffaa00, 0x111111];
+        const oreGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+
+        for (let i = 0; i < 3; i++) {
+          const oreColor = oreColors[Math.floor(Math.random() * oreColors.length)];
+          const oreMat = new THREE.MeshBasicMaterial({ color: oreColor });
+          
+          const oreL = new THREE.Mesh(oreGeo, oreMat);
+          oreL.position.set(1.51, Math.random() * 4 + 1, (Math.random() - 0.5) * 8);
+          leftRock.add(oreL);
+
+          const oreR = new THREE.Mesh(oreGeo, oreMat);
+          oreR.position.set(-1.51, Math.random() * 4 + 1, (Math.random() - 0.5) * 8);
+          rightRock.add(oreR);
+        }
+
+        this.scene.add(leftRock);
+        this.scene.add(rightRock);
+
+        this.activeSideRocks.push({ left: leftRock, right: rightRock });
+      }
+
+      spawnSupportArch(z) {
+        const arch = new THREE.Group();
+        arch.position.z = z;
+
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x3d2712, roughness: 0.95 });
+        
+        const postL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 6.0, 0.6), woodMat);
+        postL.position.set(-6.8, 3.0, 0);
+        postL.castShadow = true;
+        arch.add(postL);
+
+        const postR = postL.clone();
+        postR.position.x = 6.8;
+        arch.add(postR);
+
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(14.2, 0.6, 0.6), woodMat);
+        beam.position.set(0, 6.0, 0);
+        beam.castShadow = true;
+        arch.add(beam);
+
+        const torchGroup = new THREE.Group();
+        torchGroup.position.set(-6.3, 4.0, 0.4);
+        
+        const stick = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 0.12), new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+        stick.rotation.x = Math.PI / 8;
+        torchGroup.add(stick);
+
+        const flame = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+        flame.position.set(0, 0.28, 0.05);
+        torchGroup.add(flame);
+
+        const torchLight = new THREE.PointLight(0xff9922, 2.5, 20);
+        torchLight.position.set(0, 0.3, 0.1);
+        torchGroup.add(torchLight);
+
+        arch.add(torchGroup);
+
+        const torchR = torchGroup.clone();
+        torchR.position.x = 6.3;
+        arch.add(torchR);
+
+        this.scene.add(arch);
+        this.activeArches.push(arch);
+      }
+
+      spawnQuestionBlocks(mathData) {
+        this.clearBlocks();
+
+        const colors = [this.cyanMat, this.goldMat, this.purpleMat];
+        const lanes = [-4, 0, 4];
+
+        const overlay = document.getElementById('answers-overlay-container');
+        overlay.innerHTML = '';
+
+        // Floating math question placed higher (Y = +4.5) to avoid overlap
+        const qDiv = document.createElement('div');
+        qDiv.className = 'question-label';
+        qDiv.innerText = mathData.question;
+        qDiv.id = 'hud-question-float';
+        overlay.appendChild(qDiv);
+
+        for (let i = 0; i < 3; i++) {
+          const mat = colors[i % colors.length];
+          const blockMesh = new THREE.Mesh(this.blockGeo, mat);
+          
+          blockMesh.position.set(lanes[i], 1.0, -100);
+          blockMesh.castShadow = true;
+          blockMesh.receiveShadow = true;
+
+          blockMesh.userData = {
+            lane: i - 1,
+            answerValue: mathData.answers[i],
+            isCorrect: mathData.answers[i] === mathData.correctAnswer
+          };
+
+          this.scene.add(blockMesh);
+          this.activeBlocks.push(blockMesh);
+
+          // Spawn answer option HTML overlay
+          const div = document.createElement('div');
+          div.className = 'answer-label';
+          div.innerText = mathData.answers[i];
+          div.id = `block-label-${i}`;
+          overlay.appendChild(div);
+        }
+      }
+
+      clearBlocks() {
+        this.activeBlocks.forEach(b => this.scene.remove(b));
+        this.activeBlocks = [];
+        document.getElementById('answers-overlay-container').innerHTML = '';
+      }
+
+      triggerExplosion(position, blockMaterial) {
+        const particleCount = 28;
+        const partGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = new THREE.Mesh(partGeo, blockMaterial);
+          particle.position.copy(position);
+          
+          particle.position.x += (Math.random() - 0.5) * 1.5;
+          particle.position.y += (Math.random() - 0.5) * 1.5;
+          particle.position.z += (Math.random() - 0.5) * 1.5;
+
+          const velocity = new THREE.Vector3(
+            (Math.random() - 0.5) * 10,
+            Math.random() * 12 + 4,
+            (Math.random() - 0.5) * 10
+          );
+
+          this.scene.add(particle);
+          this.activeParticles.push({
+            mesh: particle,
+            vel: velocity,
+            life: 1.0
+          });
+        }
+      }
+
+      update(dt, speed, aspect, width, height) {
+        const movement = speed * dt;
+
+        this.activePlanks.forEach(plank => {
+          plank.position.z += movement;
+          if (plank.position.z > 20) {
+            plank.position.z -= 144;
+          }
+        });
+
+        this.activeSideRocks.forEach(rockPair => {
+          rockPair.left.position.z += movement;
+          rockPair.right.position.z += movement;
+          
+          if (rockPair.left.position.z > 20) {
+            rockPair.left.position.z -= 144;
+            rockPair.right.position.z -= 144;
+          }
+        });
+
+        this.activeArches.forEach(arch => {
+          arch.position.z += movement;
+          if (arch.position.z > 20) {
+            arch.position.z -= 144;
+          }
+        });
+
+        const centerBlock = this.activeBlocks[1];
+        let showAnswers = false;
+        let answerScale = 0;
+        let questionScale = 0.7;
+
+        if (centerBlock) {
+          const distance = 8.0 - centerBlock.position.z;
+          
+          // Question is always visible immediately from start, scaling as it gets closer
+          const qProgress = Math.max(0, Math.min(1, (108 - distance) / 103));
+          questionScale = 0.7 + 0.8 * qProgress;
+
+          if (distance <= 73) {
+            showAnswers = true;
+            const aProgress = Math.max(0, Math.min(1, (73 - distance) / 68));
+            answerScale = 0.3 + 1.1 * aProgress;
+          }
+        }
+
+        // Always display math question overlay immediately
+        if (centerBlock) {
+          const qVector = new THREE.Vector3();
+          centerBlock.getWorldPosition(qVector);
+          qVector.y += 4.5; // Question floats high above middle block to prevent overlap
+
+          qVector.project(this.camera);
+
+          const qX = (qVector.x * 0.5 + 0.5) * width;
+          const qY = (-(qVector.y * 0.5) + 0.5) * height;
+
+          const qLabel = document.getElementById('hud-question-float');
+          if (qLabel) {
+            if (qVector.z > 1.0) {
+              qLabel.style.display = 'none';
+            } else {
+              qLabel.style.display = 'block';
+              qLabel.style.left = `${qX}px`;
+              qLabel.style.top = `${qY}px`;
+              qLabel.style.transform = `translate(-50%, -100%) scale(${questionScale})`;
+            }
+          }
+        }
+
+        this.activeBlocks.forEach((block, idx) => {
+          block.position.z += movement;
+
+          block.rotation.y += 0.5 * dt;
+          block.rotation.x += 0.2 * dt;
+
+          const label = document.getElementById(`block-label-${idx}`);
+          if (label) {
+            if (showAnswers) {
+              const vector = new THREE.Vector3();
+              block.getWorldPosition(vector);
+              vector.y += 1.4;
+
+              vector.project(this.camera);
+
+              const x = (vector.x * 0.5 + 0.5) * width;
+              const y = (-(vector.y * 0.5) + 0.5) * height;
+
+              if (vector.z > 1.0) {
+                label.style.display = 'none';
+              } else {
+                label.style.display = 'block';
+                label.style.left = `${x}px`;
+                label.style.top = `${y}px`;
+                label.style.transform = `translate(-50%, -100%) scale(${answerScale})`;
+              }
+            } else {
+              label.style.display = 'none';
+            }
+          }
+        });
+
+        for (let i = this.activeParticles.length - 1; i >= 0; i--) {
+          const p = this.activeParticles[i];
+          p.mesh.position.addScaledVector(p.vel, dt);
+          p.vel.y -= 25 * dt;
+          p.life -= 1.8 * dt;
+
+          const s = Math.max(0.01, p.life);
+          p.mesh.scale.set(s, s, s);
+
+          if (p.life <= 0) {
+            this.scene.remove(p.mesh);
+            p.mesh.geometry.dispose();
+            this.activeParticles.splice(i, 1);
+          }
+        }
+      }
+
+      resetAll() {
+        this.clearBlocks();
+        this.activeParticles.forEach(p => this.scene.remove(p.mesh));
+        this.activeParticles = [];
+      }
+    }
+
+    // --- MAIN GAME COORDINATOR ---
+    class Game {
+      constructor() {
+        this.container = document.getElementById('canvas-container');
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+
+        this.score = 0;
+        this.highScore = parseInt(localStorage.getItem('mc_subway_highscore') || '0', 10);
+        this.health = 3;
+        this.startSpeed = 15.0;
+        this.speed = this.startSpeed;
+        this.speedMultiplier = 1.0;
+        this.gameState = 'menu';
+
+        this.shakeTime = 0;
+        this.shakeIntensity = 0;
+
+        this.damageFlashEl = document.getElementById('damage-flash');
+        this.mathEngine = new MathEngine();
+
+        document.getElementById('menu-topscore').innerText = `All-Time Topscore: ${this.highScore}`;
+        document.getElementById('gameover-topscore').innerText = `All-Time Topscore: ${this.highScore}`;
+
+        this.initThreeJS();
+        this.blockManager = new BlockManager3D(this.scene, this.camera);
+        this.cart = new Cart3D(this.scene);
+
+        window.addEventListener('resize', () => this.onResize());
+        window.addEventListener('keydown', (e) => this.onKeyDown(e));
+
+        this.lastTime = performance.now();
+        this.animate();
+      }
+
+      initThreeJS() {
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.FogExp2(0x1a1a24, 0.012);
+
+        this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 1000);
+        this.camera.position.set(0, 4.0, 13.0);
+        this.camera.lookAt(new THREE.Vector3(0, 1.5, 0));
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(this.width, this.height);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.container.appendChild(this.renderer.domElement);
+
+        const ambient = new THREE.AmbientLight(0x48485a, 2.5);
+        this.scene.add(ambient);
+
+        this.sunLight = new THREE.DirectionalLight(0xeef7ff, 1.4);
+        this.sunLight.position.set(10, 40, -10);
+        this.sunLight.castShadow = true;
+        this.sunLight.shadow.mapSize.width = 1024;
+        this.sunLight.shadow.mapSize.height = 1024;
+        this.sunLight.shadow.camera.near = 0.5;
+        this.sunLight.shadow.camera.far = 150;
+        const d = 20;
+        this.sunLight.shadow.camera.left = -d;
+        this.sunLight.shadow.camera.right = d;
+        this.sunLight.shadow.camera.top = d;
+        this.sunLight.shadow.camera.bottom = -d;
+        this.scene.add(this.sunLight);
+      }
+
+      onResize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+
+        this.camera.aspect = this.width / this.height;
+        this.camera.updateProjectionMatrix();
+
+        this.renderer.setSize(this.width, this.height);
+      }
+
+      onKeyDown(e) {
+        if (this.gameState !== 'playing') return;
+
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+          if (this.cart.targetLane > -1) {
+            this.cart.targetLane -= 1;
+          }
+        }
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+          if (this.cart.targetLane < 1) {
+            this.cart.targetLane += 1;
+          }
+        }
+      }
+
+      triggerDamage() {
+        this.health--;
+        this.updateHUDHearts();
+        
+        this.damageFlashEl.style.opacity = 1;
+        setTimeout(() => {
+          this.damageFlashEl.style.opacity = 0;
+        }, 150);
+
+        this.shakeTime = 0.4;
+        this.shakeIntensity = 0.5;
+
+        // Reset speed to half of the current speed, but not lower than start speed
+        this.speed = Math.max(this.speed / 2, this.startSpeed * this.speedMultiplier);
+        document.getElementById('hud-speed').innerText = `${(this.speed / this.startSpeed).toFixed(1)}x`;
+
+        const equation = `${this.mathEngine.currentProblemText} = ${this.mathEngine.currentAnswer}`;
+
+        if (this.health <= 0) {
+          this.gameOver(`Fout! De juiste uitkomst was: ${equation}\nJe bent door te veel mijnblokken geraakt!`);
+        } else {
+          // Pause game and show popup
+          this.gameState = 'paused';
+          document.getElementById('wrong-answer-text').innerText = equation;
+          document.getElementById('wrong-answer-screen').classList.remove('hidden');
+        }
+      }
+
+      triggerCorrect(hitBlock) {
+        this.score++;
+        document.getElementById('hud-score').innerText = this.score;
+
+        this.blockManager.triggerExplosion(hitBlock.position, hitBlock.material);
+
+        this.speed += 1.5;
+        document.getElementById('hud-speed').innerText = `${(this.speed / this.startSpeed).toFixed(1)}x`;
+
+        if (this.score > this.highScore) {
+          this.highScore = this.score;
+          localStorage.setItem('mc_subway_highscore', this.highScore);
+          document.getElementById('menu-topscore').innerText = `All-Time Topscore: ${this.highScore}`;
+          document.getElementById('gameover-topscore').innerText = `All-Time Topscore: ${this.highScore}`;
+        }
+
+        this.nextQuestion();
+      }
+
+      nextQuestion() {
+        const mathData = this.mathEngine.generateProblem();
+        this.blockManager.spawnQuestionBlocks(mathData);
+      }
+
+      updateHUDHearts() {
+        const heartsContainer = document.getElementById('hud-hearts');
+        heartsContainer.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+          const heart = document.createElement('div');
+          heart.className = `heart ${i < this.health ? 'full' : 'empty'}`;
+          heartsContainer.appendChild(heart);
+        }
+      }
+
+      gameOver(reason) {
+        this.gameState = 'gameover';
+        
+        document.getElementById('hud').style.display = 'none';
+        document.getElementById('answers-overlay-container').innerHTML = '';
+        
+        const gameOverScreen = document.getElementById('gameover-screen');
+        gameOverScreen.classList.remove('hidden');
+
+        document.getElementById('gameover-reason').innerText = reason;
+        document.getElementById('gameover-score').innerText = this.score;
+
+        const isNewHigh = this.score > 0 && this.score === this.highScore;
+        document.getElementById('gameover-new-high').style.display = isNewHigh ? 'block' : 'none';
+
+        this.blockManager.resetAll();
+      }
+
+      startGame() {
+        const checkboxes = document.querySelectorAll('.table-cb');
+        const selected = [];
+        checkboxes.forEach(cb => {
+          if (cb.checked) {
+            selected.push(parseInt(cb.value, 10));
+          }
+        });
+
+        if (selected.length === 0) {
+          alert('Selecteer a.u.b. ten minste één maaltabel!');
+          return;
+        }
+
+        this.mathEngine.selectedTables = selected;
+
+        const chosenSpeedMult = parseFloat(document.getElementById('speed-slider').value);
+        this.speedMultiplier = chosenSpeedMult;
+        this.speed = this.startSpeed * this.speedMultiplier;
+        document.getElementById('hud-speed').innerText = `${this.speedMultiplier.toFixed(1)}x`;
+
+        this.score = 0;
+        this.health = 3;
+        this.updateHUDHearts();
+        document.getElementById('hud-score').innerText = this.score;
+
+        document.getElementById('menu-screen').classList.add('hidden');
+        document.getElementById('gameover-screen').classList.add('hidden');
+        document.getElementById('wrong-answer-screen').classList.add('hidden');
+        document.getElementById('hud').style.display = 'flex';
+
+        this.blockManager.resetAll();
+        this.cart.targetLane = 0;
+        this.cart.currentX = 0;
+        this.cart.group.position.x = 0;
+
+        this.gameState = 'playing';
+
+        this.nextQuestion();
+      }
+
+      showMenu() {
+        this.gameState = 'menu';
+        document.getElementById('gameover-screen').classList.add('hidden');
+        document.getElementById('wrong-answer-screen').classList.add('hidden');
+        document.getElementById('menu-screen').classList.remove('hidden');
+        document.getElementById('hud').style.display = 'none';
+        this.blockManager.resetAll();
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+
+        const now = performance.now();
+        const dt = Math.min((now - this.lastTime) / 1000, 0.1);
+        this.lastTime = now;
+
+        if (this.gameState === 'playing') {
+          this.cart.update(dt, this.speed);
+          this.blockManager.update(dt, this.speed, this.camera.aspect, this.width, this.height);
+
+          if (this.shakeTime > 0) {
+            this.shakeTime -= dt;
+            const shakeX = (Math.random() - 0.5) * this.shakeIntensity;
+            const shakeY = (Math.random() - 0.5) * this.shakeIntensity;
+            this.camera.position.set(shakeX, 4.0 + shakeY, 13.0);
+          } else {
+            this.camera.position.set(0, 4.0, 13.0);
+          }
+
+          this.camera.lookAt(new THREE.Vector3(this.cart.group.position.x * 0.5, 1.5, 0));
+
+          this.blockManager.activeBlocks.forEach((block) => {
+            if (block.position.z >= 6.8 && block.position.z <= 9.2) {
+              const blockLane = block.userData.lane;
+              if (blockLane === this.cart.targetLane) {
+                if (block.userData.isCorrect) {
+                  this.triggerCorrect(block);
+                } else {
+                  this.triggerDamage();
+                }
+              }
+            } else if (block.position.z > 9.2) {
+              const hasCorrectRemaining = this.blockManager.activeBlocks.some(b => b.userData.isCorrect && b.position.z < 12);
+              if (hasCorrectRemaining) {
+                this.triggerDamage();
+              }
+            }
+          });
+        } else if (this.gameState === 'paused') {
+          // Do not update positions or movements during pause
+        } else {
+          const rotTime = Date.now() * 0.0003;
+          this.camera.position.x = 2 * Math.sin(rotTime);
+          this.camera.position.y = 4.0 + 0.3 * Math.cos(rotTime);
+          this.camera.lookAt(new THREE.Vector3(0, 1.5, 0));
+
+          this.blockManager.update(dt, this.startSpeed * 0.3, this.camera.aspect, this.width, this.height);
+        }
+
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    // --- HTML UI Setup & Integrations ---
+    function setupTablesGrid() {
+      const grid = document.getElementById('tables-grid');
+      grid.innerHTML = '';
+      for (let t = 2; t <= 9; t++) {
+        const label = document.createElement('label');
+        label.className = 'table-checkbox-label selected';
+        label.id = `label-cb-${t}`;
+        label.innerHTML = `<input type="checkbox" class="table-cb" value="${t}" checked onchange="toggleTableSelection(${t})">Tafel ${t}`;
+        grid.appendChild(label);
+      }
+    }
+
+    function toggleTableSelection(tableNum) {
+      const label = document.getElementById(`label-cb-${tableNum}`);
+      const cb = label.querySelector('input');
+      if (cb.checked) {
+        label.classList.add('selected');
+      } else {
+        label.classList.remove('selected');
+      }
+    }
+
+    function updateSpeedLabel(val) {
+      document.getElementById('speed-label').innerText = `Startsnelheid: ${val}x`;
+    }
+
+    let activeGameMode = 'multiply';
+    function setMode(mode) {
+      activeGameMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      
+      if (mode === 'multiply') {
+        document.getElementById('mode-multiply').classList.add('active');
+      } else if (mode === 'divide') {
+        document.getElementById('mode-divide').classList.add('active');
+      } else {
+        document.getElementById('mode-mix').classList.add('active');
+      }
+
+      if (window.gameInstance) {
+        window.gameInstance.mathEngine.mode = mode;
+      }
+    }
+
+    window.closeWrongAnswerPopup = () => {
+      document.getElementById('wrong-answer-screen').classList.add('hidden');
+      if (window.gameInstance) {
+        window.gameInstance.nextQuestion();
+        window.gameInstance.gameState = 'playing';
+        window.gameInstance.lastTime = performance.now();
+      }
+    };
+
+    setupTablesGrid();
+    window.gameInstance = new Game();
+
+    window.startGame = () => {
+      window.gameInstance.startGame();
+    };
+
+    window.showMenu = () => {
+      window.gameInstance.showMenu();
+    };
+  </script>
+
+  <!-- Mobile Touch Controls -->
+  <div id="mobile-steer-container" style="display: none;">
+    <button id="mc-steer-left" class="mc-steer-btn">◀</button>
+    <button id="mc-steer-right" class="mc-steer-btn">▶</button>
+  </div>
+
+  <style>
+  #mobile-steer-container {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 30px;
+    box-sizing: border-box;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  .mc-steer-btn {
+    pointer-events: auto;
+    background: #c6c6c6;
+    border: 4px solid #373737;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    box-shadow: inset -4px -4px 0px #555555, inset 4px 4px 0px #dbdbdb;
+    color: #373737;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 24px;
+    width: 75px;
+    height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    image-rendering: pixelated;
+  }
+
+  .mc-steer-btn:active {
+    border: 4px solid #ffffff;
+    border-top-color: #373737;
+    border-left-color: #373737;
+    box-shadow: inset -4px -4px 0px #dbdbdb, inset 4px 4px 0px #555555;
+    color: #000;
+    transform: translateY(2px);
+  }
+
+  @media (min-width: 1024px) {
+    #mobile-steer-container {
+      display: none !important;
+    }
+  }
+  </style>
+
+  <script>
+  (function() {
+    function isTouch() {
+      return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 1024);
+    }
+
+    if (isTouch()) {
+      const container = document.getElementById('mobile-steer-container');
+      container.style.display = 'flex';
+
+      const menuScreen = document.getElementById('menu-screen');
+      const gameOverScreen = document.getElementById('gameover-screen');
+      const wrongAnswerScreen = document.getElementById('wrong-answer-screen');
+
+      function updateSteerVisibility() {
+        const isMenuVisible = (menuScreen && !menuScreen.classList.contains('hidden')) ||
+                              (gameOverScreen && !gameOverScreen.classList.contains('hidden')) ||
+                              (wrongAnswerScreen && !wrongAnswerScreen.classList.contains('hidden'));
+        container.style.opacity = isMenuVisible ? '0' : '1';
+        container.style.pointerEvents = isMenuVisible ? 'none' : 'auto';
+      }
+
+      const observer = new MutationObserver(updateSteerVisibility);
+      const config = { attributes: true, attributeFilter: ['class'] };
+      if (menuScreen) observer.observe(menuScreen, config);
+      if (gameOverScreen) observer.observe(gameOverScreen, config);
+      if (wrongAnswerScreen) observer.observe(wrongAnswerScreen, config);
+
+      updateSteerVisibility();
+
+      function sendKey(keyName) {
+        const ev = new KeyboardEvent('keydown', {
+          key: keyName,
+          code: keyName,
+          bubbles: true,
+          cancelable: true
+        });
+        window.dispatchEvent(ev);
+      }
+
+      const leftBtn = document.getElementById('mc-steer-left');
+      const rightBtn = document.getElementById('mc-steer-right');
+
+      const triggerLeft = (e) => {
+        e.preventDefault();
+        sendKey('ArrowLeft');
+      };
+
+      const triggerRight = (e) => {
+        e.preventDefault();
+        sendKey('ArrowRight');
+      };
+
+      leftBtn.addEventListener('touchstart', triggerLeft, {passive: false});
+      leftBtn.addEventListener('mousedown', triggerLeft);
+      rightBtn.addEventListener('touchstart', triggerRight, {passive: false});
+      rightBtn.addEventListener('mousedown', triggerRight);
+    }
+  })();
+  </script>
+</body>
+</html>

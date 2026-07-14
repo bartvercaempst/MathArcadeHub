@@ -1,0 +1,52 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Cordova APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Install Project Dependencies
+        run: npm install
+
+      - name: Add Android Platform
+        run: cordova platform add android --nosave
+
+      - name: Build Android APK (Debug)
+        run: cordova build android --device
+
+      - name: Locate and Rename APK
+        run: |
+          mkdir -p build-output
+          cp platforms/android/app/build/outputs/apk/debug/app-debug.apk build-output/MathArcadeHub.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MathArcadeHub-Android-APK
+          path: build-output/MathArcadeHub.apk
+          retention-days: 7

@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.matharcade.hub" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Math Arcade Hub</name>
+    <description>
+        Een verzameling van 5 educatieve wiskundegames om tafels en deeltafels te oefenen.
+    </description>
+    <author email="dev@matharcade.hub" href="https://github.com">
+        Antigravity
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-navigation href="*" />
+    
+    <!-- Mobile Preferences -->
+    <preference name="Fullscreen" value="true" />
+    <preference name="Orientation" value="sensor" />
+    <preference name="BackgroundColor" value="0xff03030c" />
+    <preference name="DisallowOverscroll" value="true" />
+    
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <preference name="KeepRunning" value="true" />
+    </platform>
+</widget>

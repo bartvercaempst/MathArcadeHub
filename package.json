@@ -1,0 +1,24 @@
+{
+  "name": "com.matharcade.hub",
+  "displayName": "MathArcadeHub",
+  "version": "1.0.0",
+  "description": "Math Arcade Hub containing 5 math games.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Antigravity",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "cordova-android": "^12.0.1"
+  },
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {}
+  }
+}
