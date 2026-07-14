@@ -33,11 +33,22 @@ jobs:
       - name: Install Project Dependencies
         run: npm install
 
+      - name: Environment Diagnostics
+        run: |
+          echo "=== JAVA VERSION ==="
+          java -version
+          echo "=== NODE VERSION ==="
+          node -v
+          echo "=== ANDROID_HOME ==="
+          echo $ANDROID_HOME
+          echo "=== GRADLE IN PATH ==="
+          gradle -v || echo "Gradle not in PATH"
+
       - name: Add Android Platform
-        run: cordova platform add android --nosave
+        run: cordova platform add android --nosave --verbose
 
       - name: Build Android APK (Debug)
-        run: cordova build android --device
+        run: cordova build android --device --verbose
 
       - name: Locate and Rename APK
         run: |
